@@ -10,7 +10,7 @@ namespace SRL
             Level metroLevel = Level.ReadOfficial(EOfficial.METRO);
 
             int width = metroLevel.GetTileLayer(ELayer.COLLISION).Width;
-            int height = metroLevel.GetTileLayer(ELayer.COLLISION).Width;
+            int height = metroLevel.GetTileLayer(ELayer.COLLISION).Height;
 
             Obstacle box = metroLevel.GetActorsOfType<Obstacle>().First();
             box.Position = new Vector2(100.0f, 300.0f);
