@@ -455,7 +455,7 @@ namespace SRL
         }
 
         /// <summary>
-        /// Constructs a new <c>ActorField</c> that was read from a <c>BinaryReader</c>.
+        /// Constructs a new <c>ActorField</c> that is read from a <c>BinaryReader</c>.
         /// This just calls <c>ReadString</c> two times in order to retrieve the key and value.
         /// </summary>
         /// <param name="reader">The reader.</param>
@@ -592,21 +592,21 @@ namespace SRL
         /// <param name="reader"></param>
         public void Read(BinaryReader reader)
         {
-            PreRead(out Vector2 position, out Vector2 size, out string typeStr, reader);
-            ReadAfterPre(position, size, typeStr, reader);
+            ReadHeader(out Position, out Size, out TypeStr, reader);
+            ReadFields(reader);
         }
 
         /// <summary>
         /// Reads position, size and typeStr values out of the <c>BinaryReader</c> just as <c>Read</c> does
         /// but it does not read any actor fields.
-        /// This method allows you to peek into the type of the upcoming actor in the stream without constructing an <c>Actor</c> object yet.
-        /// This method should be followed by a call to <c>ReadAfterPre</c> in order to read the rest.
+        /// This method is static in orderr to allow you to peek into the type of the upcoming actor in the stream without constructing an <c>Actor</c> object yet.
+        /// This method should be followed by a call to <c>ReadFields</c> in order to read the rest.
         /// </summary>
         /// <param name="position">The position.</param>
         /// <param name="size">The size.</param>
         /// <param name="typeStr">The type as a string.</param>
         /// <param name="reader">The reader.</param>
-        public static void PreRead(out Vector2 position, out Vector2 size, out string typeStr, BinaryReader reader)
+        public static void ReadHeader(out Vector2 position, out Vector2 size, out string typeStr, BinaryReader reader)
         {
             position = new Vector2(reader);
             size = new Vector2(reader);
@@ -614,22 +614,13 @@ namespace SRL
         }
 
         /// <summary>
-        /// Reads the actor from a <c>BinaryReader</c> after <c>Position</c>, <c>Size</c> and <c>TypeStr</c>
+        /// Reads the actor's fields from a <c>BinaryReader</c> after <c>Position</c>, <c>Size</c> and <c>TypeStr</c>
         /// were already consumed from the reader.
-        /// These values are instead provided as parameters.
-        /// This method will therefore only read the actor's fields.
-        /// This method is meant to be called right after <c>PreRead</c>.
+        /// This method is meant to be called right after <c>ReadHeader</c>.
         /// </summary>
-        /// <param name="position">The actor's position.</param>
-        /// <param name="size">The actor's size.</param>
-        /// <param name="typeStr">The actor's type as a string.</param>
         /// <param name="reader">The reader.</param>
-        public void ReadAfterPre(Vector2 position, Vector2 size, string typeStr, BinaryReader reader)
+        public void ReadFields(BinaryReader reader)
         {
-            Position = position;
-            Size = size;
-            TypeStr = typeStr;
-
             int propertiesCount = reader.ReadInt32();
             Fields = new List<ActorField>(propertiesCount);
             for (int i = 0; i < propertiesCount; i++)
@@ -656,7 +647,7 @@ namespace SRL
         }
 
         /// <summary>
-        /// Sets the string value of the field with matching key.
+        /// Sets the string value of the fields with matching key.
         /// If no field of matching key is present, a new <c>ActorField</c> will be constructed and added to <c>Fields</c>.
         /// </summary>
         /// <param name="key">The field's key.</param>
@@ -678,7 +669,7 @@ namespace SRL
         }
 
         /// <summary>
-        /// Gets the string value of the field with matching key.
+        /// Gets the string value of the first field with matching key.
         /// </summary>
         /// <param name="key">The field's key.</param>
         /// <returns>The field's value as <c>string</c> or <c>null</c> if no field of matching key is present.</returns>
@@ -693,7 +684,7 @@ namespace SRL
         }
 
         /// <summary>
-        /// Removes the field with matching key.
+        /// Removes the fields with matching key.
         /// </summary>
         /// <param name="key">The field's key.</param>
         /// <returns><c>true</c> if a field of matching key was found and removed.</returns>
@@ -884,14 +875,18 @@ namespace SRL
         /// <summary>
         /// Lists all subclasses of <c>TypedActor</c>.
         /// </summary>
-        public static IEnumerable<Type> AllTypes =>
-            typeof(Actor).Assembly.GetTypes().Where(t => typeof(TypedActor).IsAssignableFrom(t) && !t.IsAbstract);
+        public static IEnumerable<Type> AllTypes => allTypes;
+
+        private static List<Type> allTypes =
+            typeof(Actor).Assembly.GetTypes().Where(t => typeof(TypedActor).IsAssignableFrom(t) && !t.IsAbstract).ToList();
 
         /// <summary>
         /// Lists all subclasses of <c>TypedActor</c> including their actor type string as stored in <c>Actor.TypeStr</c>.
         /// </summary>
-        public static IEnumerable<KeyValuePair<string, Type>> AllTypesWithStr =>
-            AllTypes.Select(t => new KeyValuePair<string, Type>(t.GetProperty("TypeAsString", BindingFlags.Public | BindingFlags.Static).GetMethod.Invoke(null, null) as string, t));
+        public static IEnumerable<KeyValuePair<string, Type>> AllTypesWithStr => allTypesWithStr;
+        
+        private static List<KeyValuePair<string, Type>> allTypesWithStr =>
+            AllTypes.Select(t => new KeyValuePair<string, Type>(t.GetProperty("TypeAsString", BindingFlags.Public | BindingFlags.Static).GetMethod.Invoke(null, null) as string, t)).ToList();
 
         private static readonly Dictionary<string, Type> stringToType = AllTypesWithStr.ToDictionary(p => p.Key, p => p.Value);
         private static readonly Dictionary<Type, string> typeToString = AllTypesWithStr.ToDictionary(p => p.Value, p => p.Key);
@@ -1005,7 +1000,7 @@ namespace SRL
         }
 
         /// <summary>
-        /// Creates a new <c>TypedActor</c> from the specified actor type.
+        /// Constructs a new <c>TypedActor</c> from the specified actor type.
         /// The provided type has to be one of the subclasses of <c>TypedActor</c>.
         /// </summary>
         /// <param name="actorType">The actor type.</param>
@@ -1016,7 +1011,7 @@ namespace SRL
         }
 
         /// <summary>
-        /// Creates a new <c>TypedActor</c> from the specified actor type by providing its type string as stored in <c>Actor.TypeStr</c>.
+        /// Constructs a new <c>TypedActor</c> from the specified actor type by providing its type string as stored in <c>Actor.TypeStr</c>.
         /// </summary>
         /// <param name="actorType">The actor type string.</param>
         /// <returns>The newly created <c>TypedActor</c> or <c>null</c> if the specified type could not be found.</returns>
@@ -1062,7 +1057,7 @@ namespace SRL
         }
 
         /// <summary>
-        /// Creates a new <c>TypedActor</c> and initializes all its values and fields to their default.
+        /// Constructs a new <c>TypedActor</c> and initializes all its values and fields to their default.
         /// </summary>
         public TypedActor() : base()
         {
@@ -1925,7 +1920,7 @@ namespace SRL
         /// <param name="graphic">The graphic.</param>
         public void SetGraphic(Graphic graphic)
         {
-            Bundle = Bundles.FromName(graphic.Bundle);
+            Bundle = graphic.Bundle;
             ImageID = graphic.ID;
             ImageName = graphic.Name;
             Frame = graphic.Frame;

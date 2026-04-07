@@ -6,7 +6,7 @@ using System.Linq;
 namespace SRL
 {
     /// <summary>
-    /// Represents a layer 
+    /// Layer enumerator.
     /// </summary>
     public enum ELayer
     {
@@ -50,8 +50,14 @@ namespace SRL
         TEMP
     }
 
+    /// <summary>
+    /// Provides utility methods for the <c>ELayer</c> enum.
+    /// </summary>
     public static class Layers
     {
+        /// <summary>
+        /// Names for each layer as stored in <c>TileLayer.LayerStr</c> sorted by index.
+        /// </summary>
         public static readonly string[] LayerNames =
         {
             "DefaultUILayer",
@@ -94,18 +100,53 @@ namespace SRL
             "temp"
         };
 
+        /// <summary>
+        /// Lists all layers.
+        /// </summary>
         public static IEnumerable<ELayer> AllLayers => Enum.GetValues(typeof(ELayer)).Cast<ELayer>();
 
+        /// <summary>
+        /// Converts an <c>ELayer</c> enum to its corresponding name.
+        /// </summary>
+        /// <param name="layer">The layer.</param>
+        /// <returns>The layer's name.</returns>
         public static string ToName(this ELayer layer)
         {
             return LayerNames[(int)layer];
         }
 
+        /// <summary>
+        /// Converts a layer's name back to its corresponding <c>ELayer</c> enum.
+        /// </summary>
+        /// <param name="layerName">The layer's name.</param>
+        /// <returns>The layer.</returns>
         public static ELayer FromName(string layerName)
         {
             return (ELayer)Array.IndexOf(LayerNames, layerName);
         }
 
+        /// <summary>
+        /// Determines whether the given layer is a tile layer.
+        /// </summary>
+        /// <param name="layer">The layer.</param>
+        /// <returns>True if the given layer is a tile layer.</returns>
+        public static bool IsTileLayer(this ELayer layer)
+        {
+            return
+                layer == ELayer.COLLISION ||
+                layer == ELayer.SHADING ||
+                layer == ELayer.OVERLAY ||
+                layer == ELayer.BACKGROUND_0 ||
+                layer == ELayer.BACKGROUND_1;
+        }
+
+        /// <summary>
+        /// Gets the tile size for a given tile layer with given theme.
+        /// Multiplying the result by 16 yields the size in units.
+        /// </summary>
+        /// <param name="layer">The layer.</param>
+        /// <param name="theme">The theme.</param>
+        /// <returns>The corresponding tile size. 0 if the given layer is not a tile layer.</returns>
         public static int TileSize(this ELayer layer, ETheme theme)
         {
             if (layer == ELayer.COLLISION || layer == ELayer.SHADING)
@@ -141,57 +182,154 @@ namespace SRL
         }
     }
 
+    /// <summary>
+    /// Represents a tile layer as part of a level.
+    /// Values are exactly the same and stored in exactly the same way as in the level file format.
+    /// </summary>
     public class TileLayer
     {
+        /// <summary>
+        /// empty collision tile
+        /// </summary>
         public static readonly int COL_EMPTY = 0;
-        public static readonly int COL_FULL = 1;
-        public static readonly int COL_WALL_LEFT = 2;
-        public static readonly int COL_GRAPPLE_CEIL = 3;
-        public static readonly int COL_WALL_RIGHT = 4;
-        public static readonly int COL_CHECKERED = 5;
-        public static readonly int COL_SLOPE_UP_LEFT = 6;
-        public static readonly int COL_SLOPE_UP_RIGHT = 7;
-        public static readonly int COL_STAIRS_UP_LEFT = 8;
-        public static readonly int COL_STAIRS_UP_RIGHT = 9;
-        public static readonly int COL_CHECKERED_SLOPE_UP_LEFT = 10;
-        public static readonly int COL_CHECKERED_SLOPE_UP_RIGHT = 11;
-        public static readonly int COL_SLOPE_DOWN_LEFT = 12;
-        public static readonly int COL_SLOPE_DOWN_RIGHT = 13;
-        public static readonly int COL_CHECKERED_SLOPE_DOWN_LEFT = 14;
-        public static readonly int COL_CHECKERED_SLOPE_DOWN_RIGHT = 15;
 
+        /// <summary>
+        /// full collision tile
+        /// </summary>
+        public static readonly int COL_FULL = 1;
+
+        /// <summary>
+        /// wall collision tile, dots on the left
+        /// </summary>
+        public static readonly int COL_WALL_LEFT = 2;
+
+        /// <summary>
+        /// grapple ceiling collision tile
+        /// </summary>
+        public static readonly int COL_GRAPPLE_CEIL = 3;
+
+        /// <summary>
+        /// wall collision tile, dots on the right
+        /// </summary>
+        public static readonly int COL_WALL_RIGHT = 4;
+
+        /// <summary>
+        /// checkered collision tile
+        /// </summary>
+        public static readonly int COL_CHECKERED = 5;
+
+        /// <summary>
+        /// floor slope collision tile, upper tip on the right
+        /// </summary>
+        public static readonly int COL_FLOOR_SLOPE_RIGHT = 6;
+
+        /// <summary>
+        /// floor slope collision tile, upper tip on the left
+        /// </summary>
+        public static readonly int COL_FLOOR_SLOPE_LEFT = 7;
+
+        /// <summary>
+        /// stairs collision tile, upper tip on the right
+        /// </summary>
+        public static readonly int COL_STAIRS_RIGHT = 8;
+
+        /// <summary>
+        /// stairs collision tile, upper tip on the left
+        /// </summary>
+        public static readonly int COL_STAIRS_LEFT = 9;
+
+        /// <summary>
+        /// checkered floor collision tile, upper tip on the right
+        /// </summary>
+        public static readonly int COL_CHECKERED_FLOOR_SLOPE_RIGHT = 10;
+
+        /// <summary>
+        /// checkered floor collision tile, upper tip on the left
+        /// </summary>
+        public static readonly int COL_CHECKERED_FLOOR_SLOPE_LEFT = 11;
+
+        /// <summary>
+        /// ceiling slope collision tile, lower tip on the right
+        /// </summary>
+        public static readonly int COL_CEIL_SLOPE_RIGHT = 12;
+
+        /// <summary>
+        /// ceiling slope collision tile, lower tip on the left
+        /// </summary>
+        public static readonly int COL_CEIL_SLOPE_LEFT = 13;
+
+        /// <summary>
+        /// checkered ceiling slope collision tile, lower tip on the right
+        /// </summary>
+        public static readonly int COL_CHECKERED_CEIL_SLOPE_RIGHT = 14;
+
+        /// <summary>
+        /// checkered ceiling slope collision tile, lower tip on the left
+        /// </summary>
+        public static readonly int COL_CHECKERED_CEIL_SLOPE_LEFT = 15;
+
+        /// <summary>
+        /// The layer name.
+        /// </summary>
         public string LayerStr;
+
+        /// <summary>
+        /// The tile grid as a 2-dimensional array.
+        /// </summary>
         public int[,] Tiles;
 
+        /// <summary>
+        /// Property for the layer as an <c>ELayer</c> enum.
+        /// </summary>
         public ELayer Layer
         {
             get => Layers.FromName(LayerStr);
             set => LayerStr = value.ToName();
         }
 
+        /// <summary>
+        /// The tile layer's width in tiles.
+        /// </summary>
         public int Width
         {
             get => Tiles.GetLength(0);
             set => Resize(value, Height);
         }
 
+        /// <summary>
+        /// The tile layer's height in tiles.
+        /// </summary>
         public int Height
         {
             get => Tiles.GetLength(1);
             set => Resize(Width, value);
         }
 
+        /// <summary>
+        /// Constructs a new <c>TileLayer</c> from specified layer enum and width and height in tiles.
+        /// </summary>
+        /// <param name="layer">The layer enum.</param>
+        /// <param name="width">The width in tiles.</param>
+        /// <param name="height">The height in tiles.</param>
         public TileLayer(ELayer layer, int width, int height)
         {
             Layer = layer;
             Tiles = new int[width, height];
         }
 
+        /// <summary>
+        /// Constructs a <c>TileLayer</c> that is read from a <c>BinaryReader</c>.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
         public TileLayer(BinaryReader reader)
         {
             Read(reader);
         }
 
+        /// <summary>
+        /// Reads the tile layer from a <c>BinaryReader</c>.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
         public void Read(BinaryReader reader)
         {
             LayerStr = reader.ReadString();
@@ -208,6 +346,10 @@ namespace SRL
             }
         }
 
+        /// <summary>
+        /// Writes the tile layer to a <c>BinaryWriter</c>.
+        /// </summary>
+        /// <param name="writer">The writer.</param>
         public void Write(BinaryWriter writer)
         {
             writer.Write(LayerStr);
@@ -224,11 +366,22 @@ namespace SRL
             }
         }
 
+        /// <summary>
+        /// Clears the tile layer by setting every tile to <c>0</c>.
+        /// </summary>
         public void Clear()
         {
             Tiles = new int[Width, Height];
         }
 
+        /// <summary>
+        /// Fills a region of the tile layer with the specified tile ID.
+        /// </summary>
+        /// <param name="tilesX">The region's x-position.</param>
+        /// <param name="tilesY">The region's y-position.</param>
+        /// <param name="tilesW">The region's width.</param>
+        /// <param name="tilesH">The region's height.</param>
+        /// <param name="tileID">The tile ID to fill the region with.</param>
         public void Fill(int tilesX, int tilesY, int tilesW, int tilesH, int tileID)
         {
             for (int x = Math.Max(tilesX, 0); x < Math.Min(tilesX + tilesW, Width); x++)
@@ -240,6 +393,12 @@ namespace SRL
             }
         }
 
+        /// <summary>
+        /// Displaces the tile layer.
+        /// This operation does not change the tile layer's size and empty regions are filled by <c>0</c>.
+        /// </summary>
+        /// <param name="tilesX">The horizontal displacement.</param>
+        /// <param name="tilesY">The vertical displacement.</param>
         public void Move(int tilesX, int tilesY)
         {
             int shift = tilesY + tilesX * Height;
@@ -269,6 +428,12 @@ namespace SRL
             }
         }
 
+        /// <summary>
+        /// Resizes the tile layer.
+        /// Empty regions are filled by <c>0</c>.
+        /// </summary>
+        /// <param name="tilesW">The new width.</param>
+        /// <param name="tilesH">The new height.</param>
         public void Resize(int tilesW, int tilesH)
         {
             int[,] newTiles = new int[tilesW, tilesH];

@@ -8,7 +8,7 @@ using System.Linq;
 namespace SRL
 {
     /// <summary>
-    /// Enumerator for official levels.
+    /// Official level enumerator.
     /// </summary>
     public enum EOfficial
     {
@@ -60,10 +60,10 @@ namespace SRL
         }
 
         /// <summary>
-        /// Converts an official's filename (without .xnb extension) back to its <c>EOfficial</c> enum.
+        /// Converts an official's filename (without .xnb extension) back to its corresponding <c>EOfficial</c> enum.
         /// </summary>
         /// <param name="officialFilename">The official's filename.</param>
-        /// <returns></returns>
+        /// <returns>The official.</returns>
         public static EOfficial FromFilename(string officialFilename)
         {
             return (EOfficial)Array.IndexOf(OfficialFilenames, officialFilename);
@@ -81,7 +81,7 @@ namespace SRL
     }
     
     /// <summary>
-    /// Enumerator for level themes.
+    /// Level theme enumerator.
     /// </summary>
     public enum ETheme
     {
@@ -135,7 +135,7 @@ namespace SRL
         }
 
         /// <summary>
-        /// Converts a theme's name back to its <c>ETheme</c> enum.
+        /// Converts a theme's name back to its corresponding <c>ETheme</c> enum.
         /// </summary>
         /// <param name="themeName">The theme's name.</param>
         /// <returns>The theme.</returns>
@@ -144,6 +144,11 @@ namespace SRL
             return (ETheme)Array.IndexOf(ThemeNames, themeName);
         }
 
+        /// <summary>
+        /// Gets all the layers that a level with a given theme is made up of.
+        /// </summary>
+        /// <param name="theme">The theme.</param>
+        /// <returns>An enumerable listing all the corresponding layers.</returns>
         public static IEnumerable<ELayer> AllLayers(this ETheme theme)
         {
             switch (theme)
@@ -189,7 +194,7 @@ namespace SRL
         /// <description><c>>= 4</c> includes <c>Author</c></description>
         /// </item>
         /// <item>
-        /// <description><c>>= 5</c> includes <c>Name</c> and <c>Description</c></description>
+        /// <description><c>>= 5</c> includes <c>Title</c> and <c>Description</c></description>
         /// </item>
         /// <item>
         /// <description><c>>= 6</c> includes <c>PublishedFileID</c></description>
@@ -245,10 +250,10 @@ namespace SRL
         public string Author;
 
         /// <summary>
-        /// The name of the level.
+        /// The title of the level.
         /// Available from version 5.
         /// </summary>
-        public string Name;
+        public string Title;
 
         /// <summary>
         /// The description of the level.
@@ -283,7 +288,7 @@ namespace SRL
             int width = GetTileLayer(ELayer.COLLISION).Width;
             int height = GetTileLayer(ELayer.COLLISION).Height;
 
-            int biggestTileSize = theme.AllLayers().Select(layer => layer.TileSize(theme)).Max();
+            int biggestTileSize = theme.AllLayers().Max(layer => layer.TileSize(theme));
             if (width % biggestTileSize != 0 || height % biggestTileSize != 0)
             {
                 Console.WriteLine("WARNING: Trying to change the theme of a level with a size of tiles that is not a multiple of the biggest tile size of all the layers ({0})!", biggestTileSize);
@@ -339,13 +344,13 @@ namespace SRL
         /// <summary>
         /// Reads a subscribed level from file, which includes RWS.
         /// </summary>
-        /// <param name="name">The name of the map.</param>
+        /// <param name="title">The title of the level.</param>
         /// <param name="savedGamesPath">
         /// The path of your SavedGames folder.
         /// Any occurrence of "[DOCUMENTS]" will be replaced by the user's documents folder path.
         /// </param>
-        /// <returns>The first subscribed level that was read from file that matches the specified name. <c>null</c> if no match was found.</returns>
-        public static Level ReadSubscribed(string name, string savedGamesPath = "[DOCUMENTS]\\SavedGames")
+        /// <returns>The first subscribed level that was read from file that matches the specified title. <c>null</c> if no match was found.</returns>
+        public static Level ReadSubscribed(string title, string savedGamesPath = "[DOCUMENTS]\\SavedGames")
         {
             string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             savedGamesPath = savedGamesPath.Replace("[DOCUMENTS]", documentsPath);
@@ -353,22 +358,22 @@ namespace SRL
             string[] files = Directory.GetFiles(directory);
             foreach (string file in files)
             {
-                if (file.Contains("." + name + ".sr"))
+                if (file.Contains("." + title + ".sr"))
                     return ReadFromFile(file);
             }
             return default;
         }
 
         /// <summary>
-        /// Reads a published level from file (published by the currently logged-in Steam user).
+        /// Reads a published level from file.
         /// </summary>
-        /// <param name="name">The name of the map.</param>
+        /// <param name="title">The title of the level.</param>
         /// <param name="savedGamesPath">
         /// The path of your SavedGames folder.
         /// Any occurrence of "[DOCUMENTS]" will be replaced by the user's documents folder path.
         /// </param>
-        /// <returns>The first published level that was read from file that matches the specified name. <c>null</c> if no match was found.</returns>
-        public static Level ReadPublished(string name, string savedGamesPath = "[DOCUMENTS]\\SavedGames")
+        /// <returns>The first published level that was read from file that matches the specified title. <c>null</c> if no match was found.</returns>
+        public static Level ReadPublished(string title, string savedGamesPath = "[DOCUMENTS]\\SavedGames")
         {
             string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             savedGamesPath = savedGamesPath.Replace("[DOCUMENTS]", documentsPath);
@@ -376,7 +381,7 @@ namespace SRL
             string[] files = Directory.GetFiles(directory);
             foreach (string file in files)
             {
-                if (file.Contains("." + name + ".sr"))
+                if (file.Contains("." + title + ".sr"))
                     return ReadFromFile(file);
             }
             return default;
@@ -417,17 +422,17 @@ namespace SRL
         /// Please make sure that Steam is running and you are logged-in.
         /// You also need to provide the "Steamworks.NET.dll" and "steam_api.dll" libaries.
         /// </summary>
-        /// <param name="name">The name of the map.</param>
-        /// <returns>The local level that was read from file that matches the specified name. <c>null</c> if SteamAPI could not be initialized.</returns>
-        public static Level ReadLocal(string name)
+        /// <param name="title">The title of the level.</param>
+        /// <returns>The local level that was read from file that matches the specified title. <c>null</c> if SteamAPI could not be initialized.</returns>
+        public static Level ReadLocal(string title)
         {
             if (!InitSteam())
                 return default;
-            if (!name.EndsWith(".sr"))
-                name += ".sr";
-            int fileSize = SteamRemoteStorage.GetFileSize(name);
+            if (!title.EndsWith(".sr"))
+                title += ".sr";
+            int fileSize = SteamRemoteStorage.GetFileSize(title);
             byte[] data = new byte[fileSize];
-            SteamRemoteStorage.FileRead(name, data, fileSize);
+            SteamRemoteStorage.FileRead(title, data, fileSize);
             using (Stream stream = new MemoryStream(data))
             {
                 using (BinaryReader reader = new BinaryReader(new GZipStream(stream, CompressionMode.Decompress)))
@@ -438,21 +443,20 @@ namespace SRL
         }
 
         /// <summary>
-        /// Creates a new <c>Level</c> from specified theme, tiles width and tiles height.
-        /// This will automatically add a <c>PlayerStart</c> actor, two <c>Checkpoint</c> actors closing a loop,
-        /// <c>COLLISION</c> and <c>SHADING</c> tile layers of size <c>tilesW</c> and <c>tilesH</c> and
-        /// <c>BACKGROUND_0</c> and <c>BACKGROUND_1</c> layers of size <c>tilesW / 2</c> and <c>tilesH / 2</c>.
+        /// Constructs a new <c>Level</c> from specified theme and width and height in collision tiles.
+        /// This will automatically add a <c>PlayerStart</c> actor, two <c>Checkpoint</c> actors closing a loop
+        /// and tile layers as <c>theme.AllLayers()</c> with sizes divided by <c>layer.TileSize(theme)</c>.
         /// It's recommended that <c>tilesW</c> and <c>tilesH</c> are both a multiple of the biggest tile size of all the layers.
         /// This biggest tile size is usually 2.
         /// For <c>METRO</c>, <c>MANSION</c>, <c>THEME_PARK</c>, <c>LIBRARY</c> and <c>PROTOTYPE</c> themes it's 1.
         /// For <c>ALLEY</c> theme it's 4.
         /// </summary>
         /// <param name="theme">The theme of the level as an enum.</param>
-        /// <param name="tilesW">The width of the level in tiles (16 units).</param>
-        /// <param name="tilesH">The height of the level in tiles (16 untis).</param>
+        /// <param name="tilesW">The width of the level in collision tiles (16 units).</param>
+        /// <param name="tilesH">The height of the level in collision tiles (16 untis).</param>
         public Level(ETheme theme, int tilesW, int tilesH)
         {
-            int biggestTileSize = theme.AllLayers().Select(layer => layer.TileSize(theme)).Max();
+            int biggestTileSize = theme.AllLayers().Max(layer => layer.TileSize(theme));
             if (tilesW % biggestTileSize != 0 || tilesH % biggestTileSize != 0)
             {
                 Console.WriteLine("WARNING: Trying to create a level with a size of tiles that is not a multiple of the biggest tile size of all the layers ({0})!", biggestTileSize);
@@ -466,13 +470,13 @@ namespace SRL
             CheckpointConnect(cp1, cp0);
             TileLayers = theme.AllLayers().Select(layer => new TileLayer(layer, tilesW / layer.TileSize(theme), tilesH / layer.TileSize(theme))).ToList();
             ThemeStr = theme.ToName();
-            Name = "";
+            Title = "";
             Author = "";
             Description = "";
         }
 
         /// <summary>
-        /// Creates a <c>Level</c> that was read from a <c>BinaryReader</c>.
+        /// Constructs a <c>Level</c> that is read from a <c>BinaryReader</c>.
         /// </summary>
         /// <param name="reader">The reader.</param>
         public Level(BinaryReader reader)
@@ -493,7 +497,7 @@ namespace SRL
             for (int i = 0; i < actorCount; i++)
             {
                 // read the typeStr beforehand to be able to construct the Actor as the corresponding TypedActor subclass
-                Actor.PreRead(out Vector2 position, out Vector2 size, out string typeStr, reader);
+                Actor.ReadHeader(out Vector2 position, out Vector2 size, out string typeStr, reader);
 
                 Actor actor = TypedActor.CreateNew(typeStr);
                 if (actor == null)
@@ -501,7 +505,10 @@ namespace SRL
                     Console.WriteLine("Unknown actor type \"" + typeStr + "\"!");
                     actor = new Actor();
                 }
-                actor.ReadAfterPre(position, size, typeStr, reader); // read the rest, providing the already read values
+                actor.Position = position;
+                actor.Size = size;
+                actor.TypeStr = typeStr;
+                actor.ReadFields(reader);
 
                 Actors.Add(actor);
             }
@@ -528,7 +535,7 @@ namespace SRL
             }
             if (Version >= 5)
             {
-                Name = reader.ReadString();
+                Title = reader.ReadString();
                 Description = reader.ReadString();
             }
             if (Version >= 6)
@@ -575,7 +582,7 @@ namespace SRL
             }
             if (version >= 5)
             {
-                writer.Write(Name);
+                writer.Write(Title);
                 writer.Write(Description);
             }
             if (version >= 6)
@@ -683,8 +690,8 @@ namespace SRL
         /// Displaces all actors and layers.
         /// Actors will be displaced by 16 times the amount of tiles.
         /// </summary>
-        /// <param name="tilesX">The amount of tiles (16 units) to displace the level by in x-direction.</param>
-        /// <param name="tilesY">The amount of tiles (16 units) to displace the level by in y-direction.</param>
+        /// <param name="tilesX">The amount of collision tiles (16 units) to displace the level by in x-direction.</param>
+        /// <param name="tilesY">The amount of collision tiles (16 units) to displace the level by in y-direction.</param>
         public void MoveAll(int tilesX, int tilesY)
         {
             int biggestTileSize = Theme.AllLayers().Select(layer => layer.TileSize(Theme)).Max();
@@ -706,8 +713,8 @@ namespace SRL
         /// <c>AddDeco</c>, <c>AddSoundEmitter</c> or <c>AddCheckpoint</c> methods to ensure the actors are correctly initialized.
         /// </summary>
         /// <typeparam name="T">The type of the actor.</typeparam>
-        /// <param name="x">The x-position of the actor in units (1/16 tiles).</param>
-        /// <param name="y">The y-position of the actor in units (1/16 tiles).</param>
+        /// <param name="x">The x-position of the actor in units.</param>
+        /// <param name="y">The y-position of the actor in units.</param>
         /// <returns>The newly added actor.</returns>
         public T AddActor<T>(float x, float y) where T : TypedActor, new()
         {
@@ -739,29 +746,20 @@ namespace SRL
         /// Adds a new actor of type <c>Deco</c> to the level.
         /// Unlike <c>AddActor&lt;Deco&gt;</c>, this method also initializes the deco object with given graphics.
         /// </summary>
-        /// <param name="x">The x-position of the deco actor in units (1/16 tiles).</param>
-        /// <param name="y">The y-position of the deco actor in units (1/16 tiles).</param>
+        /// <param name="x">The x-position of the deco actor in units.</param>
+        /// <param name="y">The y-position of the deco actor in units.</param>
         /// <param name="graphic">The graphic to initialize the deco object with.</param>
         /// <returns>The newly added deco actor.</returns>
         public Deco AddDeco(float x, float y, Graphic graphic)
         {
-            EBundle bundle = Bundles.FromName(graphic.Bundle);
             if (
-                bundle != Bundles.FromTheme(Themes.FromName(ThemeStr)) &&
-                bundle <= EBundle.LABORATORY
+                graphic.Bundle != Bundles.FromTheme(Themes.FromName(ThemeStr)) &&
+                graphic.Bundle <= EBundle.STAGE_LABORATORY
                 )
             {
                 Console.WriteLine("WARNING: Trying to add a deco from a bundle that doesn't match the level's bundle!");
             }
-            if (
-                graphic.Type != EGraphicType.IMAGE &&
-                graphic.Type != EGraphicType.ANIMATED_IMAGE &&
-                graphic.Type != EGraphicType.SPRITE_IMAGE &&
-                graphic.Type != EGraphicType.MULTI_SPRITE_ATLAS &&
-                graphic.Type != EGraphicType.SPRITE_ATLAS)
-            {
-                Console.WriteLine("WARNING: Content type of a deco must either be IMAGE, ANIMATED_IMAGE, SPRITE_IMAGE, MULTI_SPRITE_ATLAS or SPRITE_ATLAS!");
-            }
+
             Deco deco = AddActor<Deco>(x, y);
             deco.SetGraphic(graphic);
             return deco;
@@ -771,24 +769,20 @@ namespace SRL
         /// Adds a new actor of type <c>EditableSoundEmitter</c> to the level.
         /// Unlike <c>AddActor&lt;EditableSoundEmitter&gt;</c>, this method also initializes the deco object with given sound.
         /// </summary>
-        /// <param name="x">The x-position of the sound emitter actor in units (1/16 tiles).</param>
-        /// <param name="y">The y-position of the sound emitter actor in units (1/16 tiles).</param>
+        /// <param name="x">The x-position of the sound emitter actor in units.</param>
+        /// <param name="y">The y-position of the sound emitter actor in units.</param>
         /// <param name="sound">The sound to initialize the sound emitter object with.</param>
         /// <returns>The newly added sound emitter actor.</returns>
         public EditableSoundEmitter AddSoundEmitter(float x, float y, Sound sound)
         {
-            EBundle bundle = Bundles.FromName(sound.Bundle);
             if (
-                bundle != Bundles.FromTheme(Themes.FromName(ThemeStr)) &&
-                bundle != EBundle.GAME
+                sound.Bundle != Bundles.FromTheme(Themes.FromName(ThemeStr)) &&
+                sound.Bundle <= EBundle.STAGE_LABORATORY
                 )
             {
                 Console.WriteLine("WARNING: Trying to add a deco from a bundle that doesn't match the level's bundle!");
             }
-            if (sound.Type != ESoundType.SOUND)
-            {
-                Console.WriteLine("WARNING: Content type of a deco must be SOUND!");
-            }
+
             EditableSoundEmitter soundEmitter = AddActor<EditableSoundEmitter>(x, y);
             soundEmitter.SFX = sound.SoundLabel;
             return soundEmitter;
@@ -799,8 +793,8 @@ namespace SRL
         /// Unlike <c>AddActor&lt;Checkpoint&gt;</c>, this method also correctly initializes the checkpoint's ID and
         /// its predecessors' next IDs.
         /// </summary>
-        /// <param name="x">The x-position of the checkpoint actor in units (1/16 tiles).</param>
-        /// <param name="y">The y-position of the checkpoint actor in units (1/16 tiles).</param>
+        /// <param name="x">The x-position of the checkpoint actor in units.</param>
+        /// <param name="y">The y-position of the checkpoint actor in units.</param>
         /// <param name="predecessors">The predecessor checkpoints.</param>
         /// <param name="helper">Whether the checkpoint should be a helper or not.</param>
         /// <param name="startpoint">Whether the checkpoint should be the startpoint or not.</param>
