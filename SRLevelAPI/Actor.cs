@@ -1315,7 +1315,7 @@ namespace SRL
             LEFT, LEFT_UP, UP, RIGHT_UP, RIGHT, RIGHT_DOWN, DOWN, LEFT_DOWN
         }
 
-        public static readonly ActorFieldInfoEnum<EType> FieldType = new ActorFieldInfoEnum<EType>("Type", new[] { "LEFT", "LEFT_UP", "UP", "RIGHT_UP", "RIGHT", "RIGHT_DOWN", "DOWN", "LEFT DOWN" }, EType.LEFT);
+        public static readonly ActorFieldInfoEnum<EType> FieldType = new ActorFieldInfoEnum<EType>("Type", new[] { "LEFT", "LEFT_UP", "UP", "RIGHT_UP", "RIGHT", "RIGHT_DOWN", "DOWN", "LEFT_DOWN" }, EType.LEFT);
 
         public EType Type
         {
