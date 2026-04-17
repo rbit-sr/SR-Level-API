@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System;
 using System.Linq;
 using System.Reflection;
 
@@ -621,9 +621,9 @@ namespace SRL
         /// <param name="reader">The reader.</param>
         public void ReadFields(BinaryReader reader)
         {
-            int propertiesCount = reader.ReadInt32();
-            Fields = new List<ActorField>(propertiesCount);
-            for (int i = 0; i < propertiesCount; i++)
+            int fieldsCount = reader.ReadInt32();
+            Fields = new List<ActorField>(fieldsCount);
+            for (int i = 0; i < fieldsCount; i++)
             {
                 Fields.Add(new ActorField(reader));
             }
@@ -2215,5 +2215,27 @@ namespace SRL
     {
         public static string TypeAsString => "MetroTunnel";
         public static Vector2 DefaultSize => new Vector2(120f, 120f);
+    }
+
+    /// <summary>
+    /// Actor wrapper that represents a timer (flag pole).
+    /// </summary>
+    public class Timer : TypedActor
+    {
+        public static string TypeAsString => "Timer";
+        public static Vector2 DefaultSize => new Vector2(50f, 2000f);
+
+        public enum EMode
+        {
+            START, STOP
+        }
+
+        public static readonly ActorFieldInfoEnum<EMode> FieldMode = new ActorFieldInfoEnum<EMode>("Mode", new[] { "START", "STOP" }, EMode.START);
+
+        public EMode Mode
+        {
+            get => GetValue(FieldMode);
+            set => SetValue(FieldMode, value);
+        }
     }
 }
