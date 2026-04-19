@@ -323,6 +323,16 @@ namespace SRL
             }
         }
 
+        private static string SubstitutePathPlaceholder(string path, string pattern, Environment.SpecialFolder specialFolder)
+        {
+            if (path.Contains(pattern))
+            {
+                string documentsPath = Environment.GetFolderPath(specialFolder);
+                return path.Replace(pattern, documentsPath);
+            }
+            return path;
+        }
+
         /// <summary>
         /// Reads an official level from file.
         /// </summary>
@@ -334,8 +344,7 @@ namespace SRL
         /// <returns>The official level that was read from file.</returns>
         public static Level ReadOfficial(EOfficial official, string speedRunnersPath = "[PROGRAM_FILES_X86]\\Steam\\steamapps\\common\\SpeedRunners")
         {
-            string programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-            speedRunnersPath = speedRunnersPath.Replace("[PROGRAM_FILES_X86]", programFilesPath);
+            speedRunnersPath = SubstitutePathPlaceholder(speedRunnersPath, "[PROGRAM_FILES_X86]", Environment.SpecialFolder.ProgramFilesX86);
             string filename = official.ToFilename();
             filename = speedRunnersPath + "\\Content\\Levels\\Multiplayer\\" + filename + ".xnb";
             return ReadFromFile(filename);
@@ -352,13 +361,34 @@ namespace SRL
         /// <returns>The first subscribed level that was read from file that matches the specified title. <c>null</c> if no match was found.</returns>
         public static Level ReadSubscribed(string title, string savedGamesPath = "[DOCUMENTS]\\SavedGames")
         {
-            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            savedGamesPath = savedGamesPath.Replace("[DOCUMENTS]", documentsPath);
+            savedGamesPath = SubstitutePathPlaceholder(savedGamesPath, "[DOCUMENTS]", Environment.SpecialFolder.MyDocuments);
             string directory = savedGamesPath + "\\SpeedRunners\\CEngineStorage\\AllPlayers\\Subscribed";
             string[] files = Directory.GetFiles(directory);
             foreach (string file in files)
             {
-                if (file.Contains("." + title + ".sr"))
+                if (file.EndsWith("." + title + ".sr"))
+                    return ReadFromFile(file);
+            }
+            return default;
+        }
+
+        /// <summary>
+        /// Reads a subscribed level from file, which includes RWS.
+        /// </summary>
+        /// <param name="id">The ID of the level as found in the Steam page's URL.</param>
+        /// <param name="savedGamesPath">
+        /// The path of your SavedGames folder.
+        /// Any occurrence of "[DOCUMENTS]" will be replaced by the user's documents folder path.
+        /// </param>
+        /// <returns>The subscribed level that was read from file that matches the specified ID. <c>null</c> if no match was found.</returns>
+        public static Level ReadSubscribed(ulong id, string savedGamesPath = "[DOCUMENTS]\\SavedGames")
+        {
+            savedGamesPath = SubstitutePathPlaceholder(savedGamesPath, "[DOCUMENTS]", Environment.SpecialFolder.MyDocuments);
+            string directory = savedGamesPath + "\\SpeedRunners\\CEngineStorage\\AllPlayers\\Subscribed";
+            string[] files = Directory.GetFiles(directory);
+            foreach (string file in files)
+            {
+                if (file.Contains("." + id + "."))
                     return ReadFromFile(file);
             }
             return default;
@@ -375,13 +405,32 @@ namespace SRL
         /// <returns>The first published level that was read from file that matches the specified title. <c>null</c> if no match was found.</returns>
         public static Level ReadPublished(string title, string savedGamesPath = "[DOCUMENTS]\\SavedGames")
         {
-            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            savedGamesPath = savedGamesPath.Replace("[DOCUMENTS]", documentsPath);
+            savedGamesPath = SubstitutePathPlaceholder(savedGamesPath, "[DOCUMENTS]", Environment.SpecialFolder.MyDocuments);
             string directory = savedGamesPath + "\\SpeedRunners\\CEngineStorage\\AllPlayers\\Published\\";
-            string[] files = Directory.GetFiles(directory);
-            foreach (string file in files)
+            foreach (string file in Directory.EnumerateFiles(directory))
             {
                 if (file.Contains("." + title + ".sr"))
+                    return ReadFromFile(file);
+            }
+            return default;
+        }
+
+        /// <summary>
+        /// Reads a publishes level from file.
+        /// </summary>
+        /// <param name="id">The ID of the level as found in the Steam page's URL.</param>
+        /// <param name="savedGamesPath">
+        /// The path of your SavedGames folder.
+        /// Any occurrence of "[DOCUMENTS]" will be replaced by the user's documents folder path.
+        /// </param>
+        /// <returns>The published level that was read from file that matches the specified ID. <c>null</c> if no match was found.</returns>
+        public static Level ReadPublished(ulong id, string savedGamesPath = "[DOCUMENTS]\\SavedGames")
+        {
+            savedGamesPath = SubstitutePathPlaceholder(savedGamesPath, "[DOCUMENTS]", Environment.SpecialFolder.MyDocuments);
+            string directory = savedGamesPath + "\\SpeedRunners\\CEngineStorage\\AllPlayers\\Subscribed";
+            foreach (string file in Directory.EnumerateFiles(directory))
+            {
+                if (file.Contains("." + id + "."))
                     return ReadFromFile(file);
             }
             return default;
