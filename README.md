@@ -4,7 +4,7 @@ This API is intended for the PC version of the 2016 game *SpeedRunners*. It prov
 A level is represented via the `Level` class, which consists of some header data, a list of actors and a list of tile layers. Note that *collision tiles* is sometimes used as a unit of distance/size and is made up of 16 "regular" units. A collision tile is the width or height of a black square tile from the collision tile layer. Note that for some background tile layers, a tile has a width and height of 2 or 4 collision tiles (32 or 64 units).
 
 ## Loading levels
-The `Level` class provides several methods that allow you to read levels from file.
+The `Level` class provides several static methods that allow you to read levels from file.
 
 ### From file
 Use `Level.ReadFromFile`.
@@ -40,13 +40,15 @@ Level myLevel = Level.ReadLocal("My level");
 ```
 
 ## Creating levels
-Use the `Level` constructor with the `ETheme` enum.
+Use the `Level` constructor by providing the theme via the `ETheme` enum and width and height values in collision tiles.
 
 ```cs
-Level newLevel = new Level(ETheme.THEME_PARK, 1000/*width*/, 800/*height*/);
+Level newLevel = new Level(ETheme.THEME_PARK, 1000, 800);
 ```
 
 ## Saving levels
+The `Level` class provides several (non-static) methods that allow you to write levels to file.
+
 ### To file
 Use `Level.WriteToFile`.
 ```cs
@@ -61,7 +63,15 @@ myLevel.WriteLocal("My level");
 
 ## The level format
 
-Every level is made up of a list of actors (`Actor`), a list of tile layers (`TileLayer`) and further header data including the theme, author, title and description.
+Every level is made up of a list of actors of type `Actor`, a list of tile layers of type `TileLayer` and further header data:
+- `Version` (`int`): The level format version, in case the level was read from file (`0` to `6`). See the documentation for more information. Use `ForceVersion` to force a specific version upon writing to file.
+- `ThemeStr` (`string`): The level's theme as a string. Use the `Theme` property for access via the `ETheme` enum.
+- `Singleplayer` (`bool`): Unused, always `false`.
+- `BombTimer` (`int`): Unused, always `60`.
+- `Author` (`string`): The level author`s name.
+- `Title` (`string`): The level's title.
+- `Description` (`string`): The level's description.
+- `PublishedFileID` (`ulong`): The level's published file ID. The value is always `0` for unpublished levels.
 
 ### Actors
 
