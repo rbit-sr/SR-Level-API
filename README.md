@@ -1,5 +1,5 @@
 # SpeedRunners level API
-This API is intended for the PC version of the 2016 game *SpeedRunners*. It provides several utilities to interact with the level file format, allowing you to load, create, modify and save levels. The API tries to be as complete as possible, even allowing you to make changes that the game's level editor is not capable of, though it currently lacks support for Origin levels as they use an entirely different format.
+This API is intended for the PC version of the 2016 game *SpeedRunners*. It provides several utilities to interact with the level file format, allowing you to load, create, modify, save and publish levels. The API tries to be as complete as possible, even allowing you to make changes that the game's level editor is not capable of, though it currently lacks support for Origin levels as they use an entirely different format.
 
 A level is represented via the `Level` class, which consists of some header data, a list of actors and a list of tile layers. Note that *collision tiles* is sometimes used as a unit of distance/size and is made up of 16 "regular" units. A collision tile is the width or height of a black square tile from the collision tile layer. Note that for some background tile layers, a tile has a width and height of 2 or 4 collision tiles (32 or 64 units).
 
@@ -59,6 +59,22 @@ myLevel.WriteToFile("the/level/path.sr");
 Use `Level.WriteLocal`. Please make sure that Steam is running and you are logged-in. You also need to provide the "Steamworks.NET.dll" and "steam_api.dll" libaries.
 ```cs
 myLevel.WriteLocal("My level");
+```
+
+### Publish
+Use `Level.WriteLocalAndPublish`. Read the documentation for more information. Please make sure that Steam is running and you are logged-in. You also 
+need to provide the "Steamworks.NET.dll" and "steam_api.dll" libaries.
+```cs
+MemoryStream previewData = new MemoryStream();
+new FileStream("preview.png", FileMode.Open).CopyTo(previewData);
+myLevel.WriteLocalAndPublish(
+  "My level",
+  previewData.ToArray(),
+  "My level",
+  "This is my level.",
+  ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityPublic,
+  new List<string>() { }, res => Console.WriteLine("Done!")
+);
 ```
 
 ## The level format
