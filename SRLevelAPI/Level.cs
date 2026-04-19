@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SRL
 {
@@ -174,7 +175,7 @@ namespace SRL
         /// <summary>
         /// The path to the level file, in case the level was read from a file.
         /// </summary>
-        public string Path => path; 
+        public string Path => path;
 
         private int version;
 
@@ -655,6 +656,20 @@ namespace SRL
             }
         }
 
+        private static bool WriteRemoteStorageFile(string name, byte[] data)
+        {
+            SteamRemoteStorage.GetQuota(out ulong _, out ulong puAvailableBytes);
+            if (puAvailableBytes < (ulong)data.Length)
+            {
+                return false;
+            }
+            if (!SteamRemoteStorage.FileWrite(name, data, data.Length))
+            {
+                return false;
+            }
+            return true;
+        }
+
         /// <summary>
         /// Saves the level as a local level.
         /// Please make sure that Steam is running and you are logged-in.
@@ -666,24 +681,66 @@ namespace SRL
         {
             if (!InitSteam())
                 return false;
+            if (!name.EndsWith(".sr"))
+                name += ".sr";
             using (MemoryStream stream = new MemoryStream())
             {
                 using (BinaryWriter writer = new BinaryWriter(new GZipStream(stream, CompressionMode.Compress)))
                 {
                     Write(writer);
                 }
-                byte[] data = stream.ToArray();
-                SteamRemoteStorage.GetQuota(out ulong pnTotalBytes, out ulong puAvailableBytes);
-                if (puAvailableBytes < (ulong)data.Length)
-                {
-                    return false;
-                }
-                if (!SteamRemoteStorage.FileWrite(name + ".sr", data, data.Length))
-                {
-                    return false;
-                }
-                return true;
+                return WriteRemoteStorageFile(name, stream.ToArray());
             }
+        }
+
+        /// <summary>
+        /// Saves the level as a local level and then publishes it.
+        /// Please make sure that Steam is running and you are logged-in.
+        /// You also need to provide the "Steamworks.NET.dll" and "steam_api.dll" libaries.
+        /// </summary>
+        /// <param name="name">The name of the level file.</param>
+        /// <param name="previewPng">The preview image in PNG format.</param>
+        /// <param name="title">The published level's title.</param>
+        /// <param name="description">The published level's description.</param>
+        /// <param name="visibility">The published level's visibility.</param>
+        /// <param name="tags">The published level's tags.</param>
+        /// <param name="steamAPICall">An API call handle allowing you to check for success/failure.</param>
+        /// <returns><c>true</c> on success. <c>false</c> if SteamAPI could not be initialized or <c>SteamRemoteStorage.FileWrite</c> failed.</returns>
+        public bool WriteLocalAndPublish(string name, byte[] previewPng, string title, string description, ERemoteStoragePublishedFileVisibility visibility, IList<string> tags, Action<RemoteStoragePublishFileResult_t> callback = null)
+        {
+            if (name.EndsWith(".sr"))
+                name = name.Substring(0, name.Length - ".sr".Length);
+            if (!WriteLocal(name))
+                return false;
+
+            if (!WriteRemoteStorageFile(name + ".jpg", previewPng))
+                return false;
+
+            SteamAPICall_t steamAPICall = SteamRemoteStorage.PublishWorkshopFile(name + ".sr", name + ".jpg", new AppId_t(207140U), title, description, visibility, tags, EWorkshopFileType.k_EWorkshopFileTypeFirst);
+            if (callback != null)
+            {
+                bool finished = false;
+
+                CallResult<RemoteStoragePublishFileResult_t>.
+                    Create(new CallResult<RemoteStoragePublishFileResult_t>.APIDispatchDelegate((result, _) =>
+                    {
+                        finished = true;
+                        callback(result);
+                    })).
+                    Set(steamAPICall);
+
+                Task.Run(() =>
+                {
+                    while (true)
+                    {
+                        SteamAPI.RunCallbacks();
+                        if (finished)
+                            break;
+                        Task.Delay(50).Wait();
+                    }
+                });
+            }
+            return true;
         }
 
         /// <summary>
@@ -744,7 +801,7 @@ namespace SRL
         public void MoveAll(int tilesX, int tilesY)
         {
             int biggestTileSize = Theme.AllLayers().Select(layer => layer.TileSize(Theme)).Max();
-            
+
             if (tilesX % biggestTileSize != 0 || tilesY % biggestTileSize != 0)
             {
                 Console.WriteLine("WARNING: Trying to move a level by an amount of tiles that is not a multiple of the biggest tile size of all layers ({0})!", biggestTileSize);
