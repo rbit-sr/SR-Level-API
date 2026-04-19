@@ -82,21 +82,23 @@ Actors are represented via the `Actor` class. It is made up of:
 - `Fields` (`List<ActorField>`): Further properties specific to the actor's type. These are exactly the properties that you can edit in the level editor by right-clicking the actor.
 The `ActorField` class consists of `Key` and `Value` strings.
 
-The API provides specialized child classes of `Actor` corresponding to each actor type. The full list of child classes includes:
+The API provides specialized child classes of `Actor` corresponding to each actor type. These child classes provide specialized C# properties for each field that are properly typed and automatically handle the key-lookup and string conversion. The full list of child classes includes:
 
 `Checkpoint`, `PlayerStart`, `Pickup`, `BoostSection`, `LethalObstacle`, `SuperBoostVolume`, `Obstacle`, `AIVolume`, `SwitchBlock`, `Switch`, `Trigger`, `EditableSoundEmitter`, `Bubbles`, `FallTile`, `Laser`, `SpawnPoint`, `BoostaCoke`, `Deco`, `TriggerSaw`, `TextDeco`, `Dove`, `Bouncepad`, `Bookcase`, `Leaves`, `DecoLight`, `DecoGlow`, `RocketLauncher`, `MetroTunnel`, `Timer`
 
-
-You can access the list of all actors via `Level.Actors`. Note that the `Actor` class has a child class for each actor type (see "Actor.cs"). Each of these child classes provides properties that allow you to access and modify every field's value.
+You can directly access all actors via the `Level.Actors` fields or use the `Level.GetActorsOfType<T>` method to get a filtered and typed list.
 
 ```cs
 Obstacle obstacle = level.GetActorsOfType<Obstacle>().First();
 
 Console.Write(obstacle.Position.X + " " + obstacle.Position.Y);
 obstacle.Position = new Vector2(100f, 300f);
+obstacle.ObstacleID = Obstacle.EObstacleID.TRASH_RED; // an example of such a property
 ```
 
-You can add new actors via `Level.AddActor<T>`. For `Deco`, use `Level.AddDeco`. For `SoundEmitter`, use `Level.AddSoundEmitter`. For `Checkpoint`, use `Level.AddCheckpoint`.
+You can add new actors via `Level.AddActor<T>`. For `Deco`, use `Level.AddDeco`, which allows you to pass a `Graphic` object. For `SoundEmitter`, use `Level.AddSoundEmitter`, which allows you to pass a `Sound` object. For `Checkpoint`, use `Level.AddCheckpoint`, which allows you to pass a list of predecessors and automatically connects them. To connect two specific checkpoints (e.g. for closing the loop), use the `Level.ConnectCheckpoints` method.
+
+
 
 ```cs
 BoostSection boost = level.AddActor<BoostSection>(500f, 800f);
