@@ -139,3 +139,10 @@ collision.Fill(50, 60, 100, 150, TileLayer.COL_FULL);
 collision.Move(20, -30);
 collision.Resize(1500, 1200);
 ```
+
+### Further utilities
+
+- You can displace all actors via `Level.MoveActors` and displace the entire level via `Level.MoveAll`
+- You can rename a trigger ID via `Level.RenameTriggerID`
+- You can restore an actor's default values via `TypedActor.SetDefaults`
+- You can scale an actor via `TypedActor.Scale`
