@@ -179,7 +179,7 @@ namespace SRL
         private int version;
 
         /// <summary>
-        /// The version of the level file, in case the level was read from a file.
+        /// The level format version, in case the level was read from a file.
         /// <list type="bullet">
         /// <item>
         /// <description><c>>= 0</c> includes <c>Actors</c>, <c>Layers</c> and <c>Theme</c></description>
@@ -516,7 +516,7 @@ namespace SRL
             AddActor<PlayerStart>(0f, 0f);
             Checkpoint cp0 = AddCheckpoint(0f, 0f, predecessors: null, helper: false, startpoint: true);
             Checkpoint cp1 = AddCheckpoint(0f, 0f, predecessors: new[] { cp0 }, helper: false, startpoint: false);
-            CheckpointConnect(cp1, cp0);
+            ConnectCheckpoints(cp1, cp0);
             TileLayers = theme.AllLayers().Select(layer => new TileLayer(layer, tilesW / layer.TileSize(theme), tilesH / layer.TileSize(theme))).ToList();
             ThemeStr = theme.ToName();
             Title = "";
@@ -873,7 +873,7 @@ namespace SRL
         /// </summary>
         /// <param name="from">The predecessor.</param>
         /// <param name="to">The successor.</param>
-        public void CheckpointConnect(Checkpoint from, Checkpoint to)
+        public void ConnectCheckpoints(Checkpoint from, Checkpoint to)
         {
             from.NextIDs = from.NextIDs.Append(to.ID);
         }

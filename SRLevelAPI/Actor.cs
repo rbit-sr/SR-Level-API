@@ -877,16 +877,18 @@ namespace SRL
         /// </summary>
         public static IEnumerable<Type> AllTypes => allTypes;
 
-        private static List<Type> allTypes =
+        private static readonly List<Type> allTypes =
             typeof(Actor).Assembly.GetTypes().Where(t => typeof(TypedActor).IsAssignableFrom(t) && !t.IsAbstract).ToList();
 
         /// <summary>
         /// Lists all subclasses of <c>TypedActor</c> including their actor type string as stored in <c>Actor.TypeStr</c>.
         /// </summary>
         public static IEnumerable<KeyValuePair<string, Type>> AllTypesWithStr => allTypesWithStr;
-        
+
+#pragma warning disable IDE1006
         private static List<KeyValuePair<string, Type>> allTypesWithStr =>
             AllTypes.Select(t => new KeyValuePair<string, Type>(t.GetProperty("TypeAsString", BindingFlags.Public | BindingFlags.Static).GetMethod.Invoke(null, null) as string, t)).ToList();
+#pragma warning restore IDE1006
 
         private static readonly Dictionary<string, Type> stringToType = AllTypesWithStr.ToDictionary(p => p.Key, p => p.Value);
         private static readonly Dictionary<Type, string> typeToString = AllTypesWithStr.ToDictionary(p => p.Value, p => p.Key);
