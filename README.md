@@ -73,7 +73,8 @@ myLevel.WriteLocalAndPublish(
   "My level",
   "This is my level.",
   ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityPublic,
-  new List<string>() { }, res => Console.WriteLine("Done!")
+  new List<string>() { },
+  res => Console.WriteLine("Done!")
 );
 ```
 
