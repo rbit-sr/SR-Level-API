@@ -75,6 +75,18 @@ Every level is made up of a list of actors of type `Actor`, a list of tile layer
 
 ### Actors
 
+Actors are represented via the `Actor` class. It is made up of:
+- `Position` (`Vector2`)
+- `Size` (`Vector2`)
+- `TypeStr` (`string`): The actor's type.
+- `Fields` (`List<ActorField>`): Further properties specific to the actor's type. These are exactly the properties that you can edit in the level editor by right-clicking the actor.
+The `ActorField` class consists of `Key` and `Value` strings.
+
+The API provides specialized child classes of `Actor` corresponding to each actor type. The full list of child classes includes:
+
+`Checkpoint`, `PlayerStart`, `Pickup`, `BoostSection`, `LethalObstacle`, `SuperBoostVolume`, `Obstacle`, `AIVolume`, `SwitchBlock`, `Switch`, `Trigger`, `EditableSoundEmitter`, `Bubbles`, `FallTile`, `Laser`, `SpawnPoint`, `BoostaCoke`, `Deco`, `TriggerSaw`, `TextDeco`, `Dove`, `Bouncepad`, `Bookcase`, `Leaves`, `DecoLight`, `DecoGlow`, `RocketLauncher`, `MetroTunnel`, `Timer`
+
+
 You can access the list of all actors via `Level.Actors`. Note that the `Actor` class has a child class for each actor type (see "Actor.cs"). Each of these child classes provides properties that allow you to access and modify every field's value.
 
 ```cs
