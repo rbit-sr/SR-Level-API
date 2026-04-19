@@ -1,7 +1,11 @@
 # SpeedRunners level API
-This API is intended for the PC version of the 2016 game *SpeedRunners*. It provides several utilities that allow you to load, create, modify and save levels.
+This API is intended for the PC version of the 2016 game *SpeedRunners*. It provides several utilities to interact with the level file format, allowing you to load, create, modify and save levels. The API tries to be as complete as possible, even allowing you to make changes that the game's level editor is not capable of, though it currently lacks support for Origin levels as they use an entirely different format.
+
+A level is represented via the `Level` class, which consists of some header data, a list of actors and a list of tile layers. Note that *collision tiles* is sometimes used as a unit of distance/size and is made up of 16 "regular" units. A collision tile is the width or height of a black square tile from the collision tile layer. Note that for some background tile layers, a tile has a width and height of 2 or 4 collision tiles (32 or 64 units).
 
 ## Loading levels
+The `Level` class provides several methods that allow you to read levels from file.
+
 ### From file
 Use `Level.ReadFromFile`.
 ```cs
@@ -9,22 +13,24 @@ Level myLevel = Level.ReadFromFile("the/file/path.sr");
 ```
 
 ### Officials
-Use the `EOfficial` enum with `Level.ReadOfficial`
+Use the `EOfficial` enum with `Level.ReadOfficial`.
 ```cs
 Level metroLevel = Level.ReadOfficial(EOfficial.METRO);
 ```
 
 ### Subscribed
-Use the level's title with `Level.ReadSubscribed`. This works for both RWS and subscribed levels. Refer to the method's documentation in case it cannot find the file.
+Use the level's title or ID with `Level.ReadSubscribed`. This works for both RWS and subscribed levels. Refer to the method's documentation in case it cannot find the file.
 ```cs
 Level pitfallLevel = Level.ReadSubscribed("Pitfall");
 Level grappleCircuitLevel = Level.ReadSubscribed("Grapple Circuit");
+Level terminalLevel = Level.ReadSubscribed(3408574219);
 ```
 
 ### Published
-Use the level's title with `Level.ReadPublished`. Refer to the method's documentation in case it cannot find the file.
+Use the level's title or ID with `Level.ReadPublished`. Refer to the method's documentation in case it cannot find the file.
 ```cs
 Level myLevel = Level.ReadPublished("My level");
+Level myLevel2 = Level.ReadPublished(3408574055);
 ```
 
 ### Local
