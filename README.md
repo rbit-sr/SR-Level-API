@@ -86,7 +86,7 @@ The API provides specialized child classes of `Actor` corresponding to each acto
 
 `Checkpoint`, `PlayerStart`, `Pickup`, `BoostSection`, `LethalObstacle`, `SuperBoostVolume`, `Obstacle`, `AIVolume`, `SwitchBlock`, `Switch`, `Trigger`, `EditableSoundEmitter`, `Bubbles`, `FallTile`, `Laser`, `SpawnPoint`, `BoostaCoke`, `Deco`, `TriggerSaw`, `TextDeco`, `Dove`, `Bouncepad`, `Bookcase`, `Leaves`, `DecoLight`, `DecoGlow`, `RocketLauncher`, `MetroTunnel`, `Timer`
 
-You can directly access all actors via the `Level.Actors` fields or use the `Level.GetActorsOfType<T>` method to get a filtered and typed list.
+You can directly access all actors via the `Level.Actors` field or use the `Level.GetActorsOfType<T>` method to get a filtered and typed list.
 
 ```cs
 Obstacle obstacle = level.GetActorsOfType<Obstacle>().First();
@@ -123,7 +123,12 @@ level.ConnectCheckpoints(cp3, cp0);
 
 ### Tile layers
 
-You can access the list of all tile layers via `Level.TileLayers`. Individual layers can be accessed via `Level.GetTileLayer` and the corresponding `ELayer` enum. Each tile layer contains a 2-dimensional `int`-array `TileLayer.Tiles` representing the grid of all tile IDs.
+Tile layers are represented via the `TileLayer` class. It is made up of:
+- `LayerStr` (`string`): The layer's name. Use the `Layer` property for access via the `ELayer` enum.
+- `Tiles` (`int[,]`): The layer's tiles grid stored in row-major format.
+The width and height can be accessed via the `Width` and `Height` properties. The `TileLayer` class provides further utility methods such as `Clear`, `Fill`, `Move` and `Resize` for editing the tile layer and constants for the collision layer tile IDs beginning with `COL_`.
+
+You can directly access all tile layers via the `Level.TileLayers` field or use the `Level.GetTileLayer` method to get a specific tile layer via an `ELayer` enum or the layer's name.
 
 ```cs
 TileLayer collision = level.GetTileLayer(ELayer.COLLISION);
