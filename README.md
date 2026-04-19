@@ -98,7 +98,7 @@ obstacle.ObstacleID = Obstacle.EObstacleID.TRASH_RED; // an example of such a pr
 
 You can add new actors via `Level.AddActor<T>`. For `Deco`, use `Level.AddDeco`, which allows you to pass a `Graphic` object. For `SoundEmitter`, use `Level.AddSoundEmitter`, which allows you to pass a `Sound` object. For `Checkpoint`, use `Level.AddCheckpoint`, which allows you to pass a list of predecessors and automatically connects them. To connect two specific checkpoints (e.g. for closing the loop), use the `Level.ConnectCheckpoints` method.
 
-
+All `Graphic` and `Sound` objects are available under the `Bundles` class. A bundle is a collection of resources, including graphics and sounds, that the game can load and unload in batches. To each theme there corresponds a specific bundle, and there are further bundles that are always loaded by the game. The `Bundles` class provides a subclass for each bundle.
 
 ```cs
 BoostSection boost = level.AddActor<BoostSection>(500f, 800f);
@@ -110,14 +110,15 @@ deco.AnimationType = Deco.EAnimationType.SPAWNER;
 deco.Lifetime = 1.0f;
 deco.SpawnInterval = 0.3f;
 
-SoundEmitter soundEmitter = level.AddSoundEmitter(600.0f, 100.0f, Bundles.Library.amb_library_clockworks);
+EditableSoundEmitter soundEmitter = level.AddSoundEmitter(600.0f, 100.0f, Bundles.Library.amb_library_clockworks);
+soundEmitter.Volume = 0.8f;
 
 level.Actors.RemoveAll(actor => actor is Checkpoint);
 Checkpoint cp0 = level.AddCheckpoint(200.0f, 200.0f, predecessors: null, startpoint: true);
 Checkpoint cp1 = level.AddCheckpoint(600.0f, 200.0f, predecessors: new[] { cp0 });
 Checkpoint cp2 = level.AddCheckpoint(600.0f, 600.0f, predecessors: new[] { cp1 });
 Checkpoint cp3 = level.AddCheckpoint(200.0f, 600.0f, predecessors: new[] { cp2 });
-level.CheckpointConnect(cp3, cp0);
+level.ConnectCheckpoints(cp3, cp0);
 ```
 
 ### Tile layers
